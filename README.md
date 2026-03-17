@@ -1,34 +1,34 @@
-# Optimization Algorithms: From Gradient Descent → Adam  
+# Optimization Algorithms in Machine Learning :
+
+## From Gradient Descent → Adam : 
 
 ---
 
-## Evolution Flow of First-Order Optimizers
+## Evolution Flow
 
-Gradient Descent
-↓
-Stochastic Gradient Descent
-↓
-Mini-Batch Gradient Descent
-↓
-Momentum (Polyak Heavy Ball)
-↓
-Nesterov Accelerated Gradient
-↓
-AdaGrad
-↓
-AdaDelta
-↓
-RMSProp
-↓
-Adam
-
-
+Gradient Descent  
+↓  
+Stochastic Gradient Descent  
+↓  
+Mini-Batch Gradient Descent  
+↓  
+Momentum  
+↓  
+Nesterov Accelerated Gradient  
+↓  
+AdaGrad  
+↓  
+AdaDelta  
+↓  
+RMSProp  
+↓  
+Adam  
 
 ---
 
 # Optimization Objective
 
-We solve the empirical risk minimization problem:
+We want to solve :
 
 $$
 \min_{\theta \in \mathbb{R}^d} J(\theta)
@@ -36,21 +36,21 @@ $$
 
 Where:
 
-- $\theta$ = parameter vector  
-- $J(\theta)$ = loss function  
-- $g_t = \nabla J(\theta_t)$ = gradient at step $t$  
+- $\theta$ → parameter vector  
+- $J(\theta)$ → loss  
+- $g_t = \nabla J(\theta_t)$ → gradient at step $t$  
 
 ---
 
-# Curvature, Hessian and Conditioning
+# Curvature and Hessian : 
 
-Second-order structure of the loss is captured by the **Hessian matrix**:
+Second derivative matrix:
 
 $$
 H = \nabla^2 J(\theta)
 $$
 
-Eigenvalues of $H$ determine curvature along different directions.
+Eigenvalues $\lambda_i$ measure curvature.
 
 Condition number:
 
@@ -58,13 +58,141 @@ $$
 \kappa = \frac{\lambda_{\max}}{\lambda_{\min}}
 $$
 
-Large $\kappa$ ⇒ slow convergence and oscillatory dynamics.
+Large $\kappa$ ⇒ slow convergence.
 
 ---
 
-# Momentum (Polyak Heavy Ball)
+# Batch Gradient Descent : 
 
-## Update Rule
+## Update
+
+$$
+\theta_{t+1} = \theta_t - \eta \nabla J(\theta_t)
+$$
+
+Gradient computed on full dataset.
+
+---
+
+## Mathematical Behaviour : 
+
+If loss is quadratic:
+
+$$
+J(\theta)=\frac{1}{2}\theta^T H \theta
+$$
+
+Then:
+
+$$
+\theta_{t+1}=(I-\eta H)\theta_t
+$$
+
+Convergence speed depends on spectral radius:
+
+$$
+\rho = \max_i |1-\eta \lambda_i|
+$$
+
+---
+
+## Complexity : 
+
+- Compute per step: $O(nd)$  
+- Space: $O(d)$  
+
+---
+
+## Failure : 
+
+- extremely slow for large $n$  
+- zig-zag in ill-conditioned valleys  
+
+---
+
+# Stochastic Gradient Descent : 
+
+## Update
+
+$$
+\theta_{t+1} = \theta_t - \eta \nabla L_i(\theta_t)
+$$
+
+Single sample gradient.
+
+---
+
+## Mathematical Effect : 
+
+Gradient estimator:
+
+$$
+\mathbb{E}[g_t] = \nabla J(\theta_t)
+$$
+
+Variance:
+
+$$
+\mathrm{Var}(g_t) > 0
+$$
+
+Noise helps escape saddle points.
+
+---
+
+## Complexity : 
+
+- Per update: $O(d)$  
+- Updates per epoch: $n$  
+
+---
+
+## Failure : 
+
+- oscillatory convergence  
+- needs LR decay  
+
+---
+
+# Mini-Batch Gradient Descent : 
+
+## Update
+
+$$
+g_t = \frac{1}{b} \sum_{i=1}^{b} \nabla L_i(\theta_t)
+$$
+
+$$
+\theta_{t+1} = \theta_t - \eta g_t
+$$
+
+---
+
+## Math Insight : 
+
+Variance reduces:
+
+$$
+\mathrm{Var}(g_t) = \frac{\sigma^2}{b}
+$$
+
+Tradeoff:
+
+- larger $b$ → stable  
+- smaller $b$ → better exploration  
+
+---
+
+## Complexity : 
+
+- Per update: $O(bd)$  
+- Epoch cost: $O(nd)$  
+
+---
+
+# Momentum : 
+
+## Update
 
 $$
 v_t = \beta v_{t-1} + g_t
@@ -76,47 +204,43 @@ $$
 
 ---
 
-## Intuition
+## What Math Is Doing : 
 
-Unrolling velocity:
-
-$$
-v_t = \sum_{k=0}^{t} \beta^{t-k} g_k
-$$
-
-Momentum performs **exponential smoothing of gradients**.
-
-- consistent gradient directions accumulate  
-- oscillating directions cancel  
-
-Improves convergence rate:
+Unroll:
 
 $$
-O(\kappa) \rightarrow O(\sqrt{\kappa})
+v_t = g_t + \beta g_{t-1} + \beta^2 g_{t-2}+...
 $$
+
+This is **exponential moving average of gradients.**
+
+In eigen-direction:
+
+$$
+z_{t+1}=(1+\beta-\eta \lambda_i)z_t-\beta z_{t-1}
+$$
+
+Second-order dynamics ⇒ acceleration.
 
 ---
 
-## Complexity
+## Complexity : 
 
-- Training compute per step: $O(d)$  
-- Space complexity: $O(2d)$  
-- Prediction compute: model dependent  
-- Inference latency: model dependent  
+- Compute: $O(d)$  
+- Space: $O(2d)$  
 
 ---
 
-## Failure Modes
+## Failure : 
 
-- overshooting minima  
-- sensitivity to $(\eta, \beta)$  
-- no adaptive scaling  
+- overshoot  
+- hyperparameter coupling  
 
 ---
 
-# Nesterov Accelerated Gradient (NAG)
+# Nesterov Accelerated Gradient :
 
-## Look-Ahead Gradient
+## Update
 
 $$
 \tilde{\theta}_t = \theta_t - \eta \beta v_{t-1}
@@ -136,212 +260,174 @@ $$
 
 ---
 
-## Theory Insight
+## What Math Means; 
 
-Provides optimal convergence rate for smooth convex objectives:
+Gradient evaluated at predicted future location.
+
+Provides optimal convex rate:
 
 $$
-J(\theta_t) - J^\* = O\left(\frac{1}{t^2}\right)
+O(1/t^2)
 $$
+
+Earlier curvature feedback ⇒ smoother convergence.
 
 ---
 
-## Failure
+# AdaGrad : 
 
-- unstable with noisy gradients  
-- still uses global learning rate  
-
----
-
-# AdaGrad
-
-## Update Rule
+## Update
 
 $$
-r_t = r_{t-1} + g_t \odot g_t
+r_t = r_{t-1} + g_t^2
 $$
 
 $$
 \theta_{t+1} =
 \theta_t -
-\frac{\eta}{\sqrt{r_t + \epsilon}} g_t
+\frac{\eta}{\sqrt{r_t+\epsilon}} g_t
 $$
 
 ---
 
-## Interpretation
+## Mathematical Meaning : 
 
-Per-coordinate adaptive scaling:
+Scaling matrix:
 
 $$
-\theta_{t+1} =
-\theta_t -
-\eta D_t^{-1/2} g_t
+D_t = \mathrm{diag}(r_t)
 $$
 
-Where $D_t = \text{diag}(r_t)$.
+Thus step becomes:
 
-Rare features maintain larger step sizes.
+$$
+\Delta\theta = -\eta D_t^{-1/2} g_t
+$$
+
+Equivalent to diagonal second-order preconditioning.
 
 ---
 
-## Failure
-
-Monotonic accumulation:
+## Failure : 
 
 $$
-r_t \uparrow \Rightarrow \eta_{\text{eff}} \rightarrow 0
+r_t \uparrow \Rightarrow \eta_{eff} \downarrow \to 0
 $$
 
-Training stagnates.
+Training stops.
 
 ---
 
-# AdaDelta
+# AdaDelta : 
 
-## Update Rule
-
-$$
-E[g^2]_t = \beta E[g^2]_{t-1} + (1-\beta) g_t^2
-$$
+## Update
 
 $$
-\Delta \theta_t =
+E[g^2]_t = \beta E[g^2]_{t-1} + (1-\beta)g_t^2
+$$
+
+$$
+\Delta\theta_t =
 -
-\frac{\sqrt{E[\Delta \theta^2]_{t-1} + \epsilon}}
-{\sqrt{E[g^2]_t + \epsilon}}
-g_t
+\frac{\sqrt{E[\Delta\theta^2]_{t-1}}}
+{\sqrt{E[g^2]_t}} g_t
 $$
 
 ---
 
-## Key Insight
+## Math Meaning : 
 
-Effective learning rate becomes:
+Effective LR:
 
 $$
-\eta_{\text{eff}} =
-\frac{\text{RMS(previous updates)}}
-{\text{RMS(current gradients)}}
+\eta_{eff}=
+\frac{\mathrm{RMS}(\Delta\theta)}
+{\mathrm{RMS}(g)}
 $$
 
-Thus LR becomes **self-normalized**.
+Self-normalizing step size.
 
 ---
 
-## Failure
+# RMSProp : 
 
-- slower convergence  
-- additional memory overhead  
-
----
-
-# RMSProp
-
-## Update Rule
+## Update
 
 $$
-s_t = \beta s_{t-1} + (1-\beta) g_t^2
+s_t=\beta s_{t-1}+(1-\beta)g_t^2
 $$
 
 $$
-\theta_{t+1} =
-\theta_t -
-\frac{\eta}{\sqrt{s_t + \epsilon}} g_t
+\theta_{t+1}=
+\theta_t-
+\frac{\eta}{\sqrt{s_t}}g_t
 $$
 
 ---
 
-## Interpretation
+## Math Meaning : 
 
-Finite-memory estimator of gradient variance.
+Finite-window estimator:
 
-Acts like **stochastic diagonal Newton step**.
+$$
+s_t \approx \mathbb{E}[g^2]
+$$
+
+Diagonal Newton approximation.
 
 ---
 
-## Failure
+# Adam : 
 
-- noisy direction updates  
-- lacks temporal gradient smoothing  
-
----
-
-# Adam (Adaptive Moment Estimation)
-
-## First Moment Estimate
+## Updates
 
 $$
-m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t
-$$
-
-## Second Moment Estimate
-
-$$
-v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2
-$$
-
-## Bias Correction
-
-$$
-\hat{m}_t = \frac{m_t}{1-\beta_1^t}
+m_t=\beta_1 m_{t-1}+(1-\beta_1)g_t
 $$
 
 $$
-\hat{v}_t = \frac{v_t}{1-\beta_2^t}
+v_t=\beta_2 v_{t-1}+(1-\beta_2)g_t^2
 $$
 
-## Final Update
+Bias correction:
 
 $$
-\theta_{t+1} =
-\theta_t -
-\frac{\eta}{\sqrt{\hat{v}_t} + \epsilon}
-\hat{m}_t
+\hat m_t=\frac{m_t}{1-\beta_1^t}
+$$
+
+$$
+\hat v_t=\frac{v_t}{1-\beta_2^t}
+$$
+
+Final step:
+
+$$
+\theta_{t+1}=
+\theta_t-
+\frac{\eta}{\sqrt{\hat v_t}} \hat m_t
 $$
 
 ---
 
-## Deep Interpretation
+## Mathematical Meaning : 
 
-Adam performs **momentum update in adaptively rescaled parameter space**:
+Adam performs momentum in adaptively rescaled space:
 
 $$
-\theta_{t+1} =
-\theta_t -
-\eta D_t^{-1} \hat{m}_t
+\Delta\theta=-\eta D_t^{-1}\hat m_t
 $$
 
 Where:
 
 $$
-D_t = \text{diag}(\sqrt{\hat{v}_t})
+D_t=\mathrm{diag}(\sqrt{\hat v_t})
 $$
 
-- $m_t$ → direction estimator  
-- $v_t$ → curvature / noise scale estimator  
-
 ---
 
-## Failure Modes
+# Comparison :
 
-- convergence to sharp minima  
-- theoretical divergence examples  
-- higher memory usage  
-
----
-
-# Benchmark Settings
-
-| Setting | Model | Purpose |
-|--------|------|---------|
-| Synthetic Quadratic | parameter vector | trajectory visualization |
-| California Housing | shallow MLP | regression convergence |
-| MNIST | neural network | deep non-convex training |
-
----
-
-# Massive Optimizer Comparison
+# Massive Optimizer Comparison :
 
 | Optimizer | TC/Step | Space | Adaptive | Momentum | Convergence Speed | Generalization | Noise Stability | Failure Risk |
 |-----------|--------|------|----------|----------|------------------|---------------|---------------|-------------|
@@ -355,15 +441,13 @@ $$
 
 ---
 
-# Core Insight
 
-Modern optimizers combine:
+# Benchmark Settings : 
 
-- gradient smoothing  
-- variance normalization  
-- diagonal curvature preconditioning  
-- stochastic gradient estimation  
+| Setting | Model | Purpose |
+|--------|------|---------|
+| Synthetic Quadratic | parameter vector | trajectory visualization |
+| California Housing | shallow MLP | regression convergence |
+| MNIST | neural network | deep non-convex training |
 
 ---
-
-
