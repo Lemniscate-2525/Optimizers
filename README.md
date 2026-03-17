@@ -24,7 +24,7 @@ We benchmark optimizers across three problem settings :
 
 ---
 
-## Optimization Problem : 
+## Optimization Problem
 
 We solve:
 
@@ -32,11 +32,11 @@ $$
 \min_{\theta \in \mathbb{R}^d} J(\theta)
 $$
 
-Where :
+Where:
 
-- \( \theta \) is the parameter vector  
-- \( J(\theta) \) is the empirical loss  
-- \( g_t = \nabla J(\theta_t) \) is the gradient  
+- $ \theta $ is the parameter vector  
+- $ J(\theta) $ is the empirical loss  
+- $ g_t = \nabla J(\theta_t) $ is the gradient at step $t$  
 
 Curvature of the loss surface is described by the **Hessian** :
 
