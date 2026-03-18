@@ -443,7 +443,7 @@ A real regression task on tabular data. Metrics are R² (higher is better), MAE,
  
 The gradient norm plot shows GD spiking to $10^{19}$ around epoch 15 before collapsing; a near-divergence that it recovers from only because the learning rate happens to be small enough to survive. Momentum follows a similar spike. Adaptive methods (RMSProp, Adam) stay flat and stable from the very first epoch, reflecting their ability to normalise gradient magnitudes automatically.
  
-![Loss Curves](opt1.png)
+![Loss Curves](chp.png)
  
 The loss curves reinforce this. SGD and Momentum converge steadily to low loss. Adam and AdamW start with surprisingly high loss and descend slowly; likely a consequence of the adaptive scaling being mismatched to this particular regression task's gradient distribution. RMSProp finds the best balance.
  
